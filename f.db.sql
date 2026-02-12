@@ -456,12 +456,22 @@ ELSE jikwonpay END 인상연봉,
 IF(2019- year(jikwonibsail) >= 8, 'o','x') AS 장기근속
 FROM jikwon;
 
+-- 집계함수(복수행 함수) : 전체 자료를 그룹별로 구분해 통계 결과를 얻기 위한 함수
+SELECT sum(jikwonpay) AS 합, AVG(jikwonpay) AS 평균 FROM jikwon;
+SELECT max(jikwonpay) AS 최대값 , min(jikwonpay) AS 최소값  FROM jikwon;
 
+UPDATE jikwon SET jikwonpay = NULL WHERE jikwonno = 5;
+SELECT * FROM jikwon;
+DESC jikwon;
 
+SELECT AVG(jikwonpay), AVG(nvl(jikwonpay, 0)) FROM jikwon;  -- AVG(): null 값은 제외 
+SELECT sum(jikwonpay) / 29, sum(jikwonpay) / 30 FROM jikwon;
 
+SELECT COUNT(jikwonno), COUNT(jikwonpay) FROM jikwon;  -- 출력:  30   /    29
+SELECT stddev(jikwonpay) AS 표준편차, var_samp(jikwonpay) AS 분산 FROM jikwon;   -- 표준편차 / 분산
+SELECT COUNT(*) AS 인원수 FROM jikwon;
 
-
-
-
-
+SELECT COUNT(*) AS 인원수,var_samp(jikwonpay) AS 분산 FROM jikwon WHERE busernum = 10;
+SELECT COUNT(*) AS 인원수,var_samp(jikwonpay) AS 분산 FROM jikwon WHERE busernum = 20;
+SELECT COUNT(*) AS 인원수,var_samp(jikwonpay) AS 분산 FROM jikwon WHERE busernum = 30;
 
