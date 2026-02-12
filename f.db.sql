@@ -416,10 +416,10 @@ SELECT jikwonname, jikwonpay, jikwonjik, if(TRUNCATE(jikwonpay/1000,0) >= 5, 'go
 --  특별수당(pay를 기준) : 5년 이상 5%, 나머지 3% (정수로 표시:반올림)
 
 SELECT jikwonname AS 직원명, 
-2019 - year(jikwonibsail) AS 근무년수,
-if(2019- year(jikwonibsail) >= 5, '감사합니다','열심히') AS 표현,
+year(NOW()) - year(jikwonibsail) AS 근무년수,
+if(year(NOW())- year(jikwonibsail) >= 10, '감사합니다','열심히') AS 표현,
 case 
-when 2019- year(jikwonibsail) >= 5 then round(jikwonpay * 0.05,0)
+when year(NOW())- year(jikwonibsail) >= 10 then round(jikwonpay * 0.05,0)
 ELSE round(jikwonpay * 0.03,0) END AS 특별수당
 FROM jikwon
 WHERE year(jikwonibsail) > 2010;
@@ -430,10 +430,16 @@ WHERE year(jikwonibsail) > 2010;
 
 SELECT jikwonname AS 직원명, jikwonjik AS 직급, jikwonibsail AS 입사년월일, 
 case
-when 2019- year(jikwonibsail) >= 8 then '왕고참'
-when 2019- year(jikwonibsail) >= 5 then '고참'
-when 2019- year(jikwonibsail) >= 3 then '보통'
+when year(NOW())- year(jikwonibsail) >= 8 then '왕고참'
+when year(NOW())- year(jikwonibsail) >= 5 then '고참'
+when year(NOW())- year(jikwonibsail) >= 3 then '보통'
 ELSE '일반' end AS 구분,
+case 
+when busernum =10 then '총무부'
+when busernum =20 then '영업부'
+when busernum =30 then '전산부'
+when busernum =40 then '관리부'
+end AS 부서
 FROM jikwon;
 
 -- 3) 각 부서번호별로 실적에 따라 급여를 다르게 인상하려 한다. 
@@ -449,4 +455,13 @@ when 30 then ROUND(jikwonpay * 1.2,0)
 ELSE jikwonpay END 인상연봉,
 IF(2019- year(jikwonibsail) >= 8, 'o','x') AS 장기근속
 FROM jikwon;
+
+
+
+
+
+
+
+
+
 
