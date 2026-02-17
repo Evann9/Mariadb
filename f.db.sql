@@ -183,7 +183,7 @@ DESC buser;
 
 create table jikwon(jikwonno int primary KEY,
 jikwonname varchar(10) not NULL,
-busernum int not nulljikwonjik varchar(10) DEFAULT '사원',
+busernum int not NULL, jikwonjik varchar(10) DEFAULT '사원',
 jikwonpay INT,
 jikwonibsail DATE,
 jikwongen varchar(4),
@@ -831,40 +831,71 @@ SELECT * FROM jikwon
 WHERE jikwonpay > (SELECT AVG(jikwonpay) FROM jikwon);
 
 -- 문3) '이미라' 직원의 입사 이후에 입사한 직원은?
-
- 
+SELECT * FROM jikwon
+WHERE jikwonibsail > (SELECT jikwonibsail FROM jikwon WHERE jikwonname = '이미라');
 
 -- 문4) 2010 ~ 2015년 사이에 입사한 총무부(10),영업부(20),전산부(30) 직원 중 급여가 가장 적은 사람은?
 -- (직급이 NULL인 자료는 작업에서 제외)
-
- 
+SELECT * FROM jikwon
+WHERE busernum IN (10, 20, 30) 
+AND jikwonibsail BETWEEN '2010-01-01' AND '2015-12-31'
+AND jikwonjik IS NOT NULL 
+AND jikwonpay = (SELECT MIN(jikwonpay) FROM jikwon 
+WHERE busernum IN (10, 20, 30) 
+AND jikwonibsail BETWEEN '2010-01-01' AND '2015-12-31' 
+AND jikwonjik IS NOT NULL);
 
 -- 문5) 한송이, 이순신과 직급이 같은 사람은 누구인가?
-
- 
+SELECT * FROM jikwon
+WHERE jikwonjik IN (SELECT jikwonjik FROM jikwon WHERE jikwonname IN('한송이', '이순신'));
 
 -- 문6) 과장 중에서 최대급여, 최소급여를 받는 사람은?
-
- 
+SELECT * FROM jikwon
+WHERE jikwonjik = '과장'
+AND jikwonpay = (SELECT max(jikwonpay) FROM jikwon WHERE jikwonjik = '과장')
+OR  jikwonpay = (SELECT min(jikwonpay) FROM jikwon WHERE jikwonjik = '과장');
 
 -- 문7) 10번 부서의 최소급여보다 많은 사람은?
-
+SELECT * FROM jikwon
+WHERE jikwonpay > (SELECT min(jikwonpay) AS '최소급여' FROM jikwon WHERE busernum = '10');
  
 
 -- 문8) 30번 부서의 평균급여보다 급여가 많은 '대리' 는 몇명인가?
-
- 
+SELECT COUNT(jikwonno) FROM jikwon
+WHERE jikwonjik = '대리' AND jikwonpay > (SELECT AVG(jikwonpay) FROM jikwon WHERE busernum = 30);
 
 -- 문9) 고객을 확보하고 있는 직원들의 이름, 직급, 부서명을 입사일 별로 출력하라.
-
- 
+SELECT jikwonibsail as 입사일, jikwonname AS 이름, jikwonjik AS 직급, 
+case 
+when busernum = 10 then '총무부'
+when busernum = 20 then '영업부'
+when busernum = 30 then '전산부'
+when busernum = 40 then '관리부'
+end AS 부서명
+FROM jikwon
+INNER JOIN gogek ON jikwonno = gogekdamsano  -- join하게 되면 교집합만 남게 된다. 그래서 where절을 따로 쓸 필요가 없다.
+GROUP BY jikwonibsail;
 
 -- 문10) 이순신과 같은 부서에 근무하는 직원과 해당 직원이 관리하는 고객 출력
 -- (고객은 나이가 30 이하면 '청년', 50 이하면 '중년', 그 외는 '노년'으로 표시하고, 고객 연장자 부터 출력)
 -- 출력 ==>  직원명    부서명     부서전화     직급      고객명    고객전화    고객구분
 --           한송이    총무부     123-1111    사원      백송이    333-3333    청년   
+SELECT jikwonname AS 직원명, busername AS 부서명, busertel AS 부서전화, 
+jikwonjik AS 직급, gogekname AS 고객명, gogektel AS 고객전화, 
+case 
+when YEAR(NOW()) - if(SUBSTR(gogekjumin,8,1) IN(1,2), SUBSTR(gogekjumin,1,2) + 1900, SUBSTR(gogekjumin,1,2) + 2000) <= 30 then '청년'
+when YEAR(NOW()) - if(SUBSTR(gogekjumin,8,1) IN(1,2), SUBSTR(gogekjumin,1,2) + 1900, SUBSTR(gogekjumin,1,2) + 2000) <= 50 then '중년'
+ELSE '노년'
+END AS 고객구분
+FROM jikwon
+INNER JOIN buser ON busernum = buserno
+INNER JOIN gogek ON jikwonno = gogekdamsano
+WHERE busernum = (SELECT busernum FROM jikwon WHERE jikwonname = '이순신')
+ORDER BY YEAR(NOW()) - if(SUBSTR(gogekjumin,8,1) IN(1,2), SUBSTR(gogekjumin,1,2) + 1900, SUBSTR(gogekjumin,1,2) + 2000) DESC;
 
-
+SELECT * FROM jikwon;
+SELECT * FROM gogek;
+SELECT * FROM buser;
 
 
 
