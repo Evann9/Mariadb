@@ -1134,6 +1134,35 @@ SELECT * FROM v_join;
 
 DELETE FROM  v_join WHERE jikwonnname='손오공'; -- err : 삭제 불가. oracle은 가능
 
+-- 문1) 사번   이름    부서  직급  근무년수  고객확보
+   -- 1   홍길동  영업부 사원     6           O   or  X
+-- 조건 : 직급이 없으면 임시직, 전산부 자료는 제외
+-- 위의 결과를 위한 뷰파일 v_exam1을 작성
+CREATE or replace VIEW v_exam1 AS
+SELECT DISTINCT jikwonno 사번, jikwonname 이름,busername 부서, nvl(jikwonjik, '임시직') 직급, date_format(NOW(), '%Y') - date_format(jikwonibsail, '%Y') 근무년수, 
+case nvl(gogekname,'a') when 'a' then 'X' ELSE 'O' END AS 고객확보
+FROM jikwon
+LEFT OUTER JOIN buser ON busernum = buserno 
+LEFT OUTER JOIN gogek ON jikwonno = gogekdamsano
+WHERE busername <> '전산부' OR busername IS NULL;
+
+SELECT * FROM v_exam1;
+
+-- 문2) 부서명   인원수
+--      영업부     7
+-- 조건 : 직원수가 가장 많은 부서 출력
+-- 위의 결과를 위한 뷰파일 v_exam2을 작성
+CREATE OR REPLACE VIEW v_exam2 AS 
+SELECT DISTINCT busername 부서명, COUNT()
+
+
+ 
+
+-- 문3) 가장 많은 직원이 입사한 요일에 입사한 직원 출력
+-- 직원명   요일     부서명   부서전화
+-- 한국인  수요일   전산부   222-2222
+--위의 결과를 위한 뷰파일 v_exam3을 작성  
+
 
 
 
