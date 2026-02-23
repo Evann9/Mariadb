@@ -1059,10 +1059,80 @@ SELECT SUM(jikwonpay) AS 연봉합 FROM v_a;
 
 CREATE VIEW v_b AS SELECT * FROM jikwon 
 WHERE jikwonname LIKE '김%' OR jikwonname LIKE '이%' OR jikwonname LIKE '박%';
+
 SELECT * FROM v_b;
 SELECT jikwonno, jikwonname, jikwonpay FROM v_b WHERE jikwonjik='사원';
 
+ALTER TABLE jikwon RENAME kbs;
+SELECT * FROM v_b;    -- err
+ALTER TABLE kbs RENAME jikwon;
+SELECT * FROM v_b;    -- success
 
+CREATE VIEW v_c AS SELECT * FROM jikwon ORDER BY jikwonpay DESC;
+SELECT * FROM v_c;
+
+CREATE VIEW v_d AS SELECT jikwonno, jikwonname, jikwonpay * 10000 AS ypay FROM jikwon;
+SELECT * FROM v_d;
+
+CREATE VIEW v_e AS SELECT jikwonname, ypay FROM v_d WHERE ypay >= 50000000;
+SELECT * FROM v_e;
+
+UPDATE v_e SET jikwonname='김치국' WHERE jikwonname ='김부만';   -- 뷰 파일을 수정하면 원본 파일의 내용도 갱신됨.
+SELECT * FROM v_e;
+SELECT * FROM v_d;
+SELECT * FROM jikwon;
+
+DELETE FROM v_d WHERE jikwonname='최미숙';  -- 원본 데이터의 영향을 준다.
+SELECT * FROM v_e;
+SELECT * FROM v_d;
+SELECT * FROM jikwon;
+DELETE FROM v_d WHERE ypay = 41000000; -- 계산에 의한 열도 조건에 참여 가능
+SELECT * FROM v_d;
+SELECT * FROM jikwon;
+
+SELECT * FROM v_d;
+UPDATE v_d SET ypay = 1111 WHERE jikwonname = '홍길동';    -- err : 원본 테이블에 ypay가 없어 수정불가.
+
+CREATE OR REPLACE view v_e AS 
+SELECT jikwonno,jikwonname, busernum, jikwonpay FROM jikwon;
+
+SELECT * FROM v_e;
+INSERT INTO v_e VALUES(31,'김밥', 20, 5000);   -- view의 insert는 원본 not null에 주의
+SELECT * FROM v_e;
+SELECT * FROM jikwon;
+
+DESC jikwon;
+
+CREATE OR REPLACE view v_f AS 
+SELECT jikwonno,jikwonname, busernum, jikwonpay , jikwonibsail FROM jikwon
+WHERE jikwonibsail < '2015-1-1';
+
+SELECT * FROM v_f;
+
+INSERT INTO v_f VALUES(32,'공기밥',10,6000,'2014-5-6');  -- v_f 조건에 맞아 보임
+INSERT INTO v_f VALUES(33,'주먹밥',10,7000,'2025-5-7');  -- v_f 조건에 안맞아 안보임
+SELECT * FROM v_f;
+SELECT * FROM jikwon;
+
+CREATE OR REPLACE view v_group AS 
+SELECT jikwonjik,SUM(jikwonpay) AS hap, AVG(jikwonpay) AS ave
+FROM jikwon GROUP BY jikwonjik;
+
+SELECT * FROM v_group;   -- group by에 의한 view는 참조만 가능(insert, update, delete X)
+
+CREATE or replace VIEW v_join AS
+SELECT jikwonno,jikwonname,busername, jikwonjik FROM jikwon
+INNER JOIN buser ON jikwon.busernum = buser.buserno
+WHERE jikwon.busernum IN (10,20);
+SELECT * FROM v_join;
+
+UPDATE v_join SET jikwonname='손오공' WHERE jikwonname = '박명화';
+SELECT * FROM v_join;
+
+UPDATE v_join SET jikwonname='사오정', busername ='영업부' WHERE jikwonname = '손오공';  -- err : join에 의한 view는 한 테이블씩만 update 가능
+SELECT * FROM v_join;
+
+DELETE FROM  v_join WHERE jikwonnname='손오공'; -- err : 삭제 불가. oracle은 가능
 
 
 
