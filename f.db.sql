@@ -1154,34 +1154,103 @@ SELECT * FROM v_exam1;
 -- 위의 결과를 위한 뷰파일 v_exam2을 작성
 CREATE OR REPLACE VIEW v_exam2 AS 
 SELECT busername AS 부서명, COUNT(*) AS 인원수 FROM buser
-INNER JOIN jikwon ON buserno = busernum
+INNER JOIN jikwon ON buser.buserno = jikwon.busernum
 GROUP BY busername 
-HAVING 인원수 = (SELECT MAX(cnt) FROM (SELECT COUNT(*) AS cnt FROM jikwon GROUP BY busernum) as temp); -- 별칭 'temp' 필수
+ORDER BY COUNT(*) DESC LIMIT 1;
 
 SELECT * FROM v_exam2;
-
  
 -- 문3) 가장 많은 직원이 입사한 요일에 입사한 직원 출력
 -- 직원명   요일     부서명   부서전화
 -- 한국인  수요일   전산부   222-2222
 --위의 결과를 위한 뷰파일 v_exam3을 작성  
-CREATE OR REPLACE VIEW v_exam3 AS 
-SELECT jikwonname AS 직원명,
-case date_format(jikwonibsail,'%w')
-when 0 then '일요일'
-when 1 then '월요일'
-when 2 then '화요일'
-when 3 then '수요일'
-when 4 then '목요일'
-when 5 then '금요일'
-when 6 then '토요일'
-end AS 요일,
-busername AS 부서명, busertel AS 부서전화
-FROM jikwon
-INNER JOIN buser ON busernum = buserno
-GROUP BY  jikwonname;
 
+CREATE OR REPLACE VIEW v_exam3 AS 
+SELECT jikwonname AS 직원명,date_format(jikwonibsail,'%W') AS 요일,
+busername AS 부서명, busertel AS 부서전화 FROM jikwon
+LEFT OUTER JOIN buser ON jikwon.busernum = buser.buserno
+WHERE date_format(jikwonibsail,'%W') = 
+(SELECT date_format(jikwonibsail,'%W') FROM jikwon
+GROUP BY date_format(jikwonibsail,'%W')
+HAVING COUNT(*) = (SELECT COUNT(*) FROM jikwon
+GROUP BY date_format(jikwonibsail,'%W') ORDER BY COUNT(*) DESC LIMIT 1));
 SELECT * FROM v_exam3;
+
+-- 3-1) 다른 풀이
+CREATE OR REPLACE VIEW v_exam3 AS 
+SELECT jikwonname AS 직원명, DATE_FORMAT(jikwonibsail, '%W') AS 요일,
+       busername AS 부서명, busertel AS 부서전화 
+FROM jikwon
+INNER JOIN buser ON jikwon.busernum = buser.buserno -- 데이터 성격상 INNER JOIN 권장
+WHERE DATE_FORMAT(jikwonibsail, '%W') = (
+    -- 가장 많이 입사한 요일 하나를 바로 뽑아냄
+    SELECT DATE_FORMAT(jikwonibsail, '%W')
+    FROM jikwon
+    GROUP BY DATE_FORMAT(jikwonibsail, '%W')
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+);
+
+-- 3-2) 다른 풀이
+CREATE OR REPLACE VIEW v_exam3 AS 
+SELECT jikwonname AS 직원명, 
+       DATE_FORMAT(jikwonibsail, '%W') AS 요일,
+       busername AS 부서명, 
+       busertel AS 부서전화 
+FROM jikwon
+INNER JOIN buser ON jikwon.busernum = buser.buserno
+WHERE DATE_FORMAT(jikwonibsail, '%W') = (
+    -- 서브쿼리: 가장 많이 입사한 요일 '딱 하나'만 가져오기
+    SELECT DATE_FORMAT(jikwonibsail, '%W')
+    FROM jikwon
+    GROUP BY DATE_FORMAT(jikwonibsail, '%W')
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
